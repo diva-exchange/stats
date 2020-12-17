@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hourly</title>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <script src="js/chart.bundle.min.js"></script>
+</head>
+<body>
+<div class="chart" style="position: relative; height:40vh; width:80vw">
+    <canvas id="chart"></canvas>
+</div>
+
+<script>
+  const ctx = document.getElementById('chart')
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Hits',
+        data: [
+          {
+            x: new Date('2020-12-01 10:00'),
+            y: 20
+          },
+          {
+            x: new Date('2020-12-05 15:00'),
+            y: 30
+          },
+          {
+            x: new Date('2020-12-06 11:00'),
+            y: 10
+          },
+          {
+            x: new Date('2020-12-09 18:00'),
+            y: 25
+          },
+        ],
+      }],
+    },
+    options: {
+      title: {
+        display: true,
+        text: 'TEST',
+      },
+      scales: {
+        xAxes: [{
+          type: 'time',
+          distribution: 'linear',
+          time: {
+            displayFormats: {
+              second: 'mm:ss',
+              minute: 'HH:mm:ss',
+              hour: 'HH:mm',
+            },
+          },
+        }],
+      },
+    },
+  })
+</script>
+</body>
+</html>
