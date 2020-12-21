@@ -86,7 +86,7 @@ export class Stats {
   /**
    *
    */
-  daily (from = -90 , until = 0) {
+  daily (from = -180 , until = 0) {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
@@ -99,6 +99,7 @@ export class Stats {
       from = -90
       until = 0
     }
+    until++
     const sql = `SELECT 
         MIN(timestamp_utc) AS timestamp_utc,
         COUNT(*) AS hits
@@ -114,7 +115,7 @@ export class Stats {
   /**
    *
    */
-  monthly (from = -36 , until = 0) {
+  monthly (from = -60 , until = 0) {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
@@ -127,13 +128,14 @@ export class Stats {
       from = -90
       until = 0
     }
+    until++
     const sql = `SELECT 
         MIN(timestamp_utc) AS timestamp_utc,
         COUNT(*) AS hits
       FROM request
       WHERE DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('now', 'start of month', '${from} months')
       AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of month', '${until} months')
-      GROUP BY STRFTIME('%Y%m%d', DATETIME(timestamp_utc, 'unixepoch'))
+      GROUP BY STRFTIME('%Y%m', DATETIME(timestamp_utc, 'unixepoch'))
       ORDER BY 1`
     console.log(sql)
     this._export(sql, 'daily')
