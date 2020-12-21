@@ -179,6 +179,4 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
-
-# Backup
-/backup
+.gitignore

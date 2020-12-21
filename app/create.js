@@ -21,41 +21,23 @@
 
 import { Logger } from '@diva.exchange/diva-logger'
 import { Stats } from './src/stats'
-import fs from 'fs'
-import path from 'path'
 
 const config = _configure()
 Logger.trace('Configuration').trace(config)
 
-if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
-  throw new Error('path to import not found')
-}
-
-if (fs.lstatSync(process.argv[2]).isDirectory()) {
-  const dir = fs.opendirSync(process.argv[2])
-  let dirent
-  while ((dirent = dir.readSync()) !== null) {
-    if (/^.+\.log$/.test(dirent.name)) {
-      (new Stats(config)).import(path.join(process.argv[2], dirent.name))
-        .then((rows) => {
-          Logger.info(`Imported ${rows} records`)
-        })
-        .catch((error) => {
-          Logger.warn(error)
-        })
-    }
-  }
-  dir.closeSync()
-} else {
-  (new Stats(config)).import(process.argv[2])
-    .then((rows) => {
-      Logger.info(`Imported ${rows} records`)
-      process.exit(0)
-    })
-    .catch((error) => {
-      Logger.warn(error)
-      process.exit(1)
-    })
+const _stats = new Stats(config)
+switch (process.argv[2] || '') {
+  case 'hourly':
+    _stats.hourly()
+    break
+  case 'daily':
+    _stats.daily()
+    break
+  case 'monthly':
+    _stats.monthly()
+    break
+  default:
+    throw new Error('invalid command')
 }
 
 function _configure () {

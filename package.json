@@ -17,28 +17,26 @@
   },
   "scripts": {
     "lint": "node_modules/.bin/eslint --fix app/src",
-    "install": "NODE_ENV=development node -r esm app/install.js",
-    "test": "nyc mocha"
+    "css-build": "node-sass --omit-source-map-url --output-style compressed app/sass/stats.scss app/view/css/stats.min.css",
+    "install": "npm run css-build && NODE_ENV=development node -r esm app/install"
   },
   "dependencies": {
     "@diva.exchange/diva-logger": "^1.0.0",
-    "better-sqlite3": "^7.1.1",
-    "chart.js": "^2.9.4",
+    "better-sqlite3": "^7.1.2",
     "esm": "^3.2.25",
     "fs-extra": "^9.0.1"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "eslint": "^7.15.0",
+    "bulma": "^0.9.1",
+    "chart.js": "^2.9.4",
+    "eslint": "^7.16.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "mocha": "^8.2.1",
-    "npm-check-updates": "^10.2.5",
-    "nyc": "^15.1.0",
-    "pino-pretty": "^4.3.0"
+    "eslint-plugin-standard": "^5.0.0",
+    "node-sass": "^5.0.0",
+    "npm-check-updates": "^10.2.5"
   },
   "Stats": {},
   "devStats": {},

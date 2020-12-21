@@ -36,6 +36,7 @@ export class Stats {
     }
     Db.create('stats')
 
+    // Chart bundle
     const pathSourceChart = path.join(__dirname, '../../node_modules/chart.js/dist/Chart.bundle.min.js')
     const pathChart = path.join(__dirname, '../view/js/chart.bundle.min.js')
     if (fs.existsSync(pathChart)) {
@@ -54,8 +55,102 @@ export class Stats {
   /**
    *
    */
-  shutdown () {
+  hourly (from = -168, until = 0) {
+    from = Math.floor(from)
+    until = Math.floor(until)
+    if (from >= 0) {
+      from = -168
+    }
+    if (until > 0) {
+      until = 0
+    }
+    if (until <= from) {
+      from = -168
+      until = 0
+    }
+    const now = Math.round((new Date()).getTime() / 1000)
+    const _t = 60 * 60
+    const f = Math.floor((now + (from * _t)) / _t) * _t
+    const u = Math.floor((now + (until * _t)) / _t) * _t
+    const sql = `SELECT 
+        MIN(timestamp_utc) AS timestamp_utc,
+        COUNT(*) AS hits
+      FROM request
+      WHERE timestamp_utc >= ${f}
+      AND timestamp_utc < ${u}
+      GROUP BY STRFTIME('%Y%m%d%H', datetime(timestamp_utc, 'unixepoch'))
+      ORDER BY 1`
+    this._export(sql, 'hourly')
+  }
 
+  /**
+   *
+   */
+  daily (from = -90 , until = 0) {
+    from = Math.floor(from)
+    until = Math.floor(until)
+    if (from >= 0) {
+      from = -90
+    }
+    if (until > 0) {
+      until = 0
+    }
+    if (until <= from) {
+      from = -90
+      until = 0
+    }
+    const sql = `SELECT 
+        MIN(timestamp_utc) AS timestamp_utc,
+        COUNT(*) AS hits
+      FROM request
+      WHERE DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('now', 'start of day', '${from} days')
+      AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of day', '${until} days')
+      GROUP BY STRFTIME('%Y%m%d', DATETIME(timestamp_utc, 'unixepoch'))
+      ORDER BY 1`
+    console.log(sql)
+    this._export(sql, 'daily')
+  }
+
+  /**
+   *
+   */
+  monthly (from = -36 , until = 0) {
+    from = Math.floor(from)
+    until = Math.floor(until)
+    if (from >= 0) {
+      from = -90
+    }
+    if (until > 0) {
+      until = 0
+    }
+    if (until <= from) {
+      from = -90
+      until = 0
+    }
+    const sql = `SELECT 
+        MIN(timestamp_utc) AS timestamp_utc,
+        COUNT(*) AS hits
+      FROM request
+      WHERE DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('now', 'start of month', '${from} months')
+      AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of month', '${until} months')
+      GROUP BY STRFTIME('%Y%m%d', DATETIME(timestamp_utc, 'unixepoch'))
+      ORDER BY 1`
+    console.log(sql)
+    this._export(sql, 'daily')
+  }
+
+  /**
+   * @param sql {string}
+   * @param name {string}
+   * @private
+   */
+  _export (sql, name) {
+    let data = []
+    this._db.allAsArray(sql).forEach((row) => {
+      data.push({t: row['timestamp_utc'] * 1000, y: row['hits']})
+    })
+    fs.writeFileSync(path.join(__dirname, `../view/js/${name}.js`),
+      `const ${name}Chart = ${JSON.stringify(data)}`)
   }
 
   /**
