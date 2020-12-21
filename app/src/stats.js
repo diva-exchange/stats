@@ -108,7 +108,6 @@ export class Stats {
       AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of day', '${until} days')
       GROUP BY STRFTIME('%Y%m%d', DATETIME(timestamp_utc, 'unixepoch'))
       ORDER BY 1`
-    console.log(sql)
     this._export(sql, 'daily')
   }
 
