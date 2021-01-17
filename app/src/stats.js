@@ -99,7 +99,6 @@ export class Stats {
       from = -180
       until = 0
     }
-    until--
     const sql = `SELECT 
         MIN(timestamp_utc) AS timestamp_utc,
         COUNT(*) AS hits
