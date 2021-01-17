@@ -55,17 +55,17 @@ export class Stats {
   /**
    *
    */
-  hourly (from = -168, until = 0) {
+  hourly (from = -240, until = 0) {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
-      from = -168
+      from = -240
     }
     if (until > 0) {
       until = 0
     }
     if (until <= from) {
-      from = -168
+      from = -240
       until = 0
     }
     const now = Math.round((new Date()).getTime() / 1000)
@@ -90,22 +90,23 @@ export class Stats {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
-      from = -90
+      from = -180
     }
     if (until > 0) {
       until = 0
     }
     if (until <= from) {
-      from = -90
+      from = -180
       until = 0
     }
-    until++
+    until--
     const sql = `SELECT 
         MIN(timestamp_utc) AS timestamp_utc,
         COUNT(*) AS hits
       FROM request
-      WHERE DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('now', 'start of day', '${from} days')
-      AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of day', '${until} days')
+      WHERE DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('2020-12-14', 'start of day')
+        AND DATETIME(timestamp_utc, 'unixepoch') >= DATETIME('now', 'start of day', '${from} days')
+        AND DATETIME(timestamp_utc, 'unixepoch') < DATETIME('now', 'start of day', '${until} days')
       GROUP BY STRFTIME('%Y%m%d', DATETIME(timestamp_utc, 'unixepoch'))
       ORDER BY 1`
     this._export(sql, 'daily')
