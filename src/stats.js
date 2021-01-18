@@ -199,11 +199,15 @@ export class Stats {
           arrayData.forEach((row) => {
             const _ip = ip.toLong(row[0])
             const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end)
-            const dt = (row[3] + row[4]).replace(':', ' ').replace('[', '').replace(']', '')
+            const dt = new Date((row[3] + row[4])
+              .replace(':', ' ')
+              .replace('[', '')
+              .replace(']', '')
+            )
             arrayParam.push({
               i: path.basename(pathFile),
               r: row[5],
-              dt: Math.round((new Date(dt)).getTime() / 1000),
+              dt: Math.round(dt.getTime() / 1000),
               c: geo ? geo.country_code : null
             })
           })

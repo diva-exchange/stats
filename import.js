@@ -32,22 +32,24 @@ if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
 }
 
 (async () => {
-  const stats = new Stats(config)
-
   if (fs.lstatSync(process.argv[2]).isDirectory()) {
     const dir = fs.opendirSync(process.argv[2])
 
+    let stats
     let dirent
     while ((dirent = dir.readSync()) !== null) {
+      stats = new Stats(config)
       if (/^.+\.log$/.test(dirent.name)) {
         const count = await stats.import(path.join(process.argv[2], dirent.name))
-        Logger.info(`Imported ${count} records`)
+        Logger.info(`Imported ${count} records from ${dirent.name}`)
       }
+      stats = null
     }
     dir.closeSync()
   } else {
+    const stats = new Stats(config)
     const count = await stats.import(process.argv[2])
-    Logger.info(`Imported ${count} records`)
+    Logger.info(`Imported ${count} records from ${process.argv[2]}`)
   }
 })()
 
