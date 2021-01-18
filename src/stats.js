@@ -17,7 +17,6 @@
  * Author/Maintainer: Konrad Bächler <konrad@diva.exchange>
  */
 
-
 'use strict'
 
 import csv from 'csv-parser'
@@ -199,7 +198,7 @@ export class Stats {
           const arrayParam = []
           arrayData.forEach((row) => {
             const _ip = ip.toLong(row[0])
-            const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
+            const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end)
             const dt = (row[3] + row[4]).replace(':', ' ').replace('[', '').replace(']', '')
             arrayParam.push({
               i: path.basename(pathFile),
@@ -209,7 +208,7 @@ export class Stats {
             })
           })
 
-          const info = this._db.insert(
+          this._db.insert(
             'INSERT INTO request (ident, resource, timestamp_utc, country) VALUES (@i, @r, @dt, @c)',
             arrayParam)
           resolve(arrayParam.length)
