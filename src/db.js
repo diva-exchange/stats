@@ -24,7 +24,7 @@ import path from 'path'
 
 import Sqlite3Database from 'better-sqlite3'
 
-const NAME_DATABASE_DEFAULT = 'diva'
+const NAME_DATABASE_DEFAULT = 'stats'
 
 export class Db {
   /**
@@ -64,7 +64,7 @@ export class Db {
   constructor (nameDatabase, mustExist = true) {
     this.nameDatabase = nameDatabase
 
-    const _pathDB = path.join(__dirname, `/../data/${this.nameDatabase}.sqlite`)
+    const _pathDB = path.join(__dirname, `../db/${this.nameDatabase}.sqlite`)
     if (!mustExist && fs.existsSync(_pathDB)) {
       throw new Error('Database exists')
     }
@@ -84,7 +84,7 @@ export class Db {
    * @private
    */
   _install () {
-    const pathModel = path.join(__dirname, `/../model/install-${this.nameDatabase}.sql`)
+    const pathModel = path.join(__dirname, `../model/install-${this.nameDatabase}.sql`)
     if (!fs.existsSync(pathModel)) {
       throw new Error('Database model not found: ' + pathModel)
     }

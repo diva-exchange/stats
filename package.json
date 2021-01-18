@@ -1,6 +1,6 @@
 {
   "name": "@diva.exchange/stats",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "diva - Distributed value exchange upholding security, reliability and privacy",
   "keywords": [
     "distributed",
@@ -16,15 +16,17 @@
     "url": "https://codeberg.org/diva.exchange/stats.git"
   },
   "scripts": {
-    "lint": "node_modules/.bin/eslint --fix app/src",
-    "css-build": "node-sass --omit-source-map-url --output-style compressed app/sass/stats.scss app/view/css/stats.min.css",
-    "install": "npm run css-build && NODE_ENV=development node -r esm app/install"
+    "lint": "node_modules/.bin/eslint --fix src",
+    "css-build": "node-sass --omit-source-map-url --output-style compressed sass/stats.scss view/css/stats.min.css",
+    "install": "npm run css-build && NODE_ENV=development node -r esm install"
   },
   "dependencies": {
     "@diva.exchange/diva-logger": "^1.0.1",
     "better-sqlite3": "^7.1.2",
+    "csv-parser": "^3.0.0",
     "esm": "^3.2.25",
-    "fs-extra": "^9.0.1"
+    "fs-extra": "^9.0.1",
+    "ip": "^1.1.5"
   },
   "devDependencies": {
     "bulma": "^0.9.1",

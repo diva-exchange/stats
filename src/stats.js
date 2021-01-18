@@ -17,19 +17,21 @@
  * Author/Maintainer: Konrad Bächler <konrad@diva.exchange>
  */
 
+
 'use strict'
 
+import csv from 'csv-parser'
 import { Db } from './db'
 import fs from 'fs'
+import ip from 'ip'
 import path from 'path'
 
 export class Stats {
-
   /**
    * Install the app
    */
   static install () {
-    const pathDb = path.join(__dirname, '../data/stats.sqlite')
+    const pathDb = path.join(__dirname, '../db/stats.sqlite')
 
     if (fs.existsSync(pathDb)) {
       fs.unlinkSync(pathDb)
@@ -37,7 +39,7 @@ export class Stats {
     Db.create('stats')
 
     // Chart bundle
-    const pathSourceChart = path.join(__dirname, '../../node_modules/chart.js/dist/Chart.bundle.min.js')
+    const pathSourceChart = path.join(__dirname, '../node_modules/chart.js/dist/Chart.bundle.min.js')
     const pathChart = path.join(__dirname, '../view/js/chart.bundle.min.js')
     if (fs.existsSync(pathChart)) {
       fs.unlinkSync(pathChart)
@@ -86,7 +88,7 @@ export class Stats {
   /**
    *
    */
-  daily (from = -180 , until = 0) {
+  daily (from = -180, until = 0) {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
@@ -114,7 +116,7 @@ export class Stats {
   /**
    *
    */
-  monthly (from = -60 , until = 0) {
+  monthly (from = -60, until = 0) {
     from = Math.floor(from)
     until = Math.floor(until)
     if (from >= 0) {
@@ -146,15 +148,33 @@ export class Stats {
    * @private
    */
   _export (sql, name) {
-    let data = []
+    const data = []
     this._db.allAsArray(sql).forEach((row) => {
-      data.push({t: row['timestamp_utc'] * 1000, y: row['hits']})
+      data.push({ t: row.timestamp_utc * 1000, y: row.hits })
     })
     fs.writeFileSync(path.join(__dirname, `../view/js/${name}.js`),
       `const ${name}Chart = ${JSON.stringify(data)}`)
   }
 
   /**
+   * GeoIP Format: ip_range_start, ip_range_end, country_code
+   *
+   * @returns {Promise<Array>}
+   * @private
+   */
+  _initGeoIP () {
+    return new Promise((resolve) => {
+      const dbCountry = []
+      fs.createReadStream(path.join(__dirname, '../data/geo-whois-asn-country-ipv4-num.csv'))
+        .pipe(csv(['ip_range_start', 'ip_range_end', 'country_code']))
+        .on('data', (data) => dbCountry.push(data))
+        .on('end', () => { resolve(dbCountry) })
+    })
+  }
+
+  /**
+   * G
+   *
    * @param pathFile {string}
    * @returns {Promise<any>}
    * @throws {Error}
@@ -165,37 +185,42 @@ export class Stats {
         return reject(new Error(`File not found: ${pathFile}`))
       }
 
-      fs.readFile(pathFile, (error, data) => {
-        if (error) {
-          return reject(error)
-        }
+      this._initGeoIP().then((dbCountry) => {
+        fs.readFile(pathFile, (error, data) => {
+          if (error) {
+            return reject(error)
+          }
 
-        this._db.delete('DELETE FROM request WHERE ident = @i', {
-          i: path.basename(pathFile),
-        })
-
-        let i = 0
-        data.toString()
-          .trim()
-          .split('\n')
-          .forEach((row) => {
-            const dt = row
-              .replace(/(\/[\d]{4}):/, '$1 ')
-              .replace(/[^[]*\[([^+]*).*$/, '$1')
-              .trim() + 'Z'
-            const r = row.replace(/^[^"]*"([^"]*)".*$/, '$1 ')
-            this._db.insert(
-              'INSERT INTO request (ident, resource, timestamp_utc) VALUES (@i, @r, @dt)',
-              {
-                i: path.basename(pathFile),
-                r: r,
-                dt: Math.round((new Date(dt)).getTime() / 1000)
-              }
-            )
-            i++
+          this._db.delete('DELETE FROM request WHERE ident = @i', {
+            i: path.basename(pathFile)
           })
 
-        resolve(i)
+          let i = 0
+          data.toString()
+            .trim()
+            .split('\n')
+            .forEach((row) => {
+              const _ip = ip.toLong(row.replace(/^([^\s]+).+$/, '$1'))
+              const _r = dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
+              const dt = row
+                .replace(/(\/[\d]{4}):/, '$1 ')
+                .replace(/[^[]*\[([^+]*).*$/, '$1')
+                .trim() + 'Z'
+              const r = row.replace(/^[^"]*"([^"]*)".*$/, '$1 ')
+              this._db.insert(
+                'INSERT INTO request (ident, resource, timestamp_utc, country) VALUES (@i, @r, @dt, @c)',
+                {
+                  i: path.basename(pathFile),
+                  r: r,
+                  dt: Math.round((new Date(dt)).getTime() / 1000),
+                  c: _r ? _r.country_code : null
+                }
+              )
+              i++
+            })
+
+          resolve(i)
+        })
       })
     })
   }

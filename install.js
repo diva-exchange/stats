@@ -22,30 +22,9 @@
 import { Logger } from '@diva.exchange/diva-logger'
 import { Stats } from './src/stats'
 
-const config = _configure()
-Logger.trace('Configuration').trace(config)
+const config = require('./package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
+process.env.LOG_LEVEL = config.log_level = process.env.LOG_LEVEL || config.log_level ||
+  (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
+Logger.setOptions({ name: config.log_name || 'StatsInstall', level: config.log_level })
 
-const _stats = new Stats(config)
-switch (process.argv[2] || '') {
-  case 'hourly':
-    _stats.hourly()
-    break
-  case 'daily':
-    _stats.daily()
-    break
-  case 'monthly':
-    _stats.monthly()
-    break
-  default:
-    throw new Error('invalid command')
-}
-
-function _configure () {
-  const config = require('../package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
-
-  process.env.LOG_LEVEL = config.log_level = process.env.LOG_LEVEL || config.log_level ||
-    (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
-  Logger.setOptions({ name: config.log_name || 'Stats', level: config.log_level })
-
- return config
-}
+Stats.install()

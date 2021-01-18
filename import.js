@@ -31,12 +31,14 @@ if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
   throw new Error('path to import not found')
 }
 
+const stats = new Stats(config)
+
 if (fs.lstatSync(process.argv[2]).isDirectory()) {
   const dir = fs.opendirSync(process.argv[2])
   let dirent
   while ((dirent = dir.readSync()) !== null) {
     if (/^.+\.log$/.test(dirent.name)) {
-      (new Stats(config)).import(path.join(process.argv[2], dirent.name))
+      stats.import(path.join(process.argv[2], dirent.name))
         .then((rows) => {
           Logger.info(`Imported ${rows} records`)
         })
@@ -47,7 +49,7 @@ if (fs.lstatSync(process.argv[2]).isDirectory()) {
   }
   dir.closeSync()
 } else {
-  (new Stats(config)).import(process.argv[2])
+  stats.import(process.argv[2])
     .then((rows) => {
       Logger.info(`Imported ${rows} records`)
       process.exit(0)
@@ -59,7 +61,7 @@ if (fs.lstatSync(process.argv[2]).isDirectory()) {
 }
 
 function _configure () {
-  const config = require('../package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
+  const config = require('./package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
 
   process.env.LOG_LEVEL = config.log_level = process.env.LOG_LEVEL || config.log_level ||
     (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
