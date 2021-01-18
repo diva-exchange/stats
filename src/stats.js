@@ -52,6 +52,7 @@ export class Stats {
    */
   constructor (config) {
     this._db = Db.connect('stats')
+    this._dbCountry = []
   }
 
   /**
@@ -159,22 +160,22 @@ export class Stats {
   /**
    * GeoIP Format: ip_range_start, ip_range_end, country_code
    *
-   * @returns {Promise<Array>}
+   * @returns {Promise<void>}
    * @private
    */
   _initGeoIP () {
     return new Promise((resolve) => {
-      const dbCountry = []
+      if (this._dbCountry.length) {
+        resolve()
+      }
       fs.createReadStream(path.join(__dirname, '../data/geo-whois-asn-country-ipv4-num.csv'))
         .pipe(csv(['ip_range_start', 'ip_range_end', 'country_code']))
-        .on('data', (data) => dbCountry.push(data))
-        .on('end', () => { resolve(dbCountry) })
+        .on('data', (data) => this._dbCountry.push(data))
+        .on('end', () => { resolve() })
     })
   }
 
   /**
-   * G
-   *
    * @param pathFile {string}
    * @returns {Promise<any>}
    * @throws {Error}
@@ -185,7 +186,7 @@ export class Stats {
         return reject(new Error(`File not found: ${pathFile}`))
       }
 
-      this._initGeoIP().then((dbCountry) => {
+      this._initGeoIP().then(() => {
         fs.readFile(pathFile, (error, data) => {
           if (error) {
             return reject(error)
@@ -201,7 +202,7 @@ export class Stats {
             .split('\n')
             .forEach((row) => {
               const _ip = ip.toLong(row.replace(/^([^\s]+).+$/, '$1'))
-              const _r = dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
+              const _r = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
               const dt = row
                 .replace(/(\/[\d]{4}):/, '$1 ')
                 .replace(/[^[]*\[([^+]*).*$/, '$1')
