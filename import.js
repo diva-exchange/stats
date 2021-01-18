@@ -31,34 +31,25 @@ if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
   throw new Error('path to import not found')
 }
 
-const stats = new Stats(config)
+(async () => {
+  const stats = new Stats(config)
 
-if (fs.lstatSync(process.argv[2]).isDirectory()) {
-  const dir = fs.opendirSync(process.argv[2])
-  let dirent
-  while ((dirent = dir.readSync()) !== null) {
-    if (/^.+\.log$/.test(dirent.name)) {
-      stats.import(path.join(process.argv[2], dirent.name))
-        .then((rows) => {
-          Logger.info(`Imported ${rows} records`)
-        })
-        .catch((error) => {
-          Logger.warn(error)
-        })
+  if (fs.lstatSync(process.argv[2]).isDirectory()) {
+    const dir = fs.opendirSync(process.argv[2])
+
+    let dirent
+    while ((dirent = dir.readSync()) !== null) {
+      if (/^.+\.log$/.test(dirent.name)) {
+        const count = await stats.import(path.join(process.argv[2], dirent.name))
+        Logger.info(`Imported ${count} records`)
+      }
     }
+    dir.closeSync()
+  } else {
+    const count = await stats.import(process.argv[2])
+    Logger.info(`Imported ${count} records`)
   }
-  dir.closeSync()
-} else {
-  stats.import(process.argv[2])
-    .then((rows) => {
-      Logger.info(`Imported ${rows} records`)
-      process.exit(0)
-    })
-    .catch((error) => {
-      Logger.warn(error)
-      process.exit(1)
-    })
-}
+})()
 
 function _configure () {
   const config = require('./package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']

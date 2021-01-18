@@ -169,13 +169,21 @@ export class Db {
   /**
    * Insert data, pass a valid INSERT SQL statement
    *
-   * @param sqlInsert {string} Valid INSERT SQL statement
-   * @param params {Object} Named bind params, like @firstname
-   * @returns {Object} Info object
+   * @param {string} sqlInsert - Valid INSERT SQL statement
+   * @param {Object|Array<Object>} params - Named bind params, like @firstname
+   * @return {Object} Info object
    * @see https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md#runbindparameters---object
    * @see https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md#binding-parameters
    */
   insert (sqlInsert, params = {}) {
+    if (Array.isArray(params)) {
+      let info = {}
+      const insert = this._database.prepare(sqlInsert)
+      params.forEach((p) => {
+        info = insert.run(p)
+      })
+      return info
+    }
     return this._prepareRun(sqlInsert, params)
   }
 

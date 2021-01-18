@@ -177,52 +177,43 @@ export class Stats {
 
   /**
    * @param pathFile {string}
-   * @returns {Promise<any>}
+   * @returns {Promise<number>}
    * @throws {Error}
    */
-  import (pathFile) {
-    return new Promise((resolve, reject) => {
-      if (!fs.existsSync(pathFile)) {
-        return reject(new Error(`File not found: ${pathFile}`))
-      }
+  async import (pathFile) {
+    if (!fs.existsSync(pathFile)) {
+      throw new Error(`File not found: ${pathFile}`)
+    }
 
-      this._initGeoIP().then(() => {
-        fs.readFile(pathFile, (error, data) => {
-          if (error) {
-            return reject(error)
-          }
-
+    await this._initGeoIP()
+    return new Promise((resolve) => {
+      const arrayData = []
+      fs.createReadStream(pathFile)
+        .pipe(csv({ headers: false, separator: ' ' }))
+        .on('data', (data) => arrayData.push(data))
+        .on('end', () => {
           this._db.delete('DELETE FROM request WHERE ident = @i', {
             i: path.basename(pathFile)
           })
 
-          let i = 0
-          data.toString()
-            .trim()
-            .split('\n')
-            .forEach((row) => {
-              const _ip = ip.toLong(row.replace(/^([^\s]+).+$/, '$1'))
-              const _r = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
-              const dt = row
-                .replace(/(\/[\d]{4}):/, '$1 ')
-                .replace(/[^[]*\[([^+]*).*$/, '$1')
-                .trim() + 'Z'
-              const r = row.replace(/^[^"]*"([^"]*)".*$/, '$1 ')
-              this._db.insert(
-                'INSERT INTO request (ident, resource, timestamp_utc, country) VALUES (@i, @r, @dt, @c)',
-                {
-                  i: path.basename(pathFile),
-                  r: r,
-                  dt: Math.round((new Date(dt)).getTime() / 1000),
-                  c: _r ? _r.country_code : null
-                }
-              )
-              i++
+          const arrayParam = []
+          arrayData.forEach((row) => {
+            const _ip = ip.toLong(row[0])
+            const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end )
+            const dt = (row[3] + row[4]).replace(':', ' ').replace('[', '').replace(']', '')
+            arrayParam.push({
+              i: path.basename(pathFile),
+              r: row[5],
+              dt: Math.round((new Date(dt)).getTime() / 1000),
+              c: geo ? geo.country_code : null
             })
+          })
 
-          resolve(i)
+          const info = this._db.insert(
+            'INSERT INTO request (ident, resource, timestamp_utc, country) VALUES (@i, @r, @dt, @c)',
+            arrayParam)
+          resolve(arrayParam.length)
         })
-      })
     })
   }
 }
