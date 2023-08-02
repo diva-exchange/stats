@@ -6,119 +6,105 @@
     <title>I2P Reseed Access</title>
 
     <link type="text/css" rel="stylesheet" href='css/stats.min.css'>
-    <script src="js/chart.bundle.min.js"></script>
+    <script src="js/chart.umd.js"></script>
+    <script src="js/luxon.js"></script>
+    <script src="js/chartjs-adapter-luxon.umd.js"></script>
 </head>
 <body>
-    <section class="section">
-        <div class="container">
-            <h1 class="title">I2P Reseed Access</h1>
-            <div class="columns">
-                <div class="column is-half-desktop">
-                    <h2 class="subtitle">Hourly</h2>
-                    <canvas id="chartHourly"></canvas>
-                </div>
-                <div class="column is-half-desktop">
-                    <h2 class="subtitle">Daily</h2>
-                    <canvas id="chartDaily"></canvas>
-                </div>
+<section class="section">
+    <div class="container">
+        <h1 class="title">I2P Reseed Access</h1>
+        <div class="columns">
+            <div class="column is-half-desktop">
+                <h2 class="subtitle">Hourly</h2>
+                <canvas id="chartHourly"></canvas>
+            </div>
+            <div class="column is-half-desktop">
+                <h2 class="subtitle">Daily</h2>
+                <canvas id="chartDaily"></canvas>
             </div>
         </div>
-    </section>
-
-    <script src="js/hourly.js"></script>
-    <script>
-      new Chart(document.getElementById('chartHourly'), {
+    </div>
+</section>
+<script src="js/hourly.js"></script>
+<script>
+    new Chart(document.getElementById('chartHourly'), {
         type: 'line',
         data: {
-          datasets: [{
-            label: 'Requests',
-            data: hourlyChart,
-            fill: false,
-            lineTension: 0.1,
-          }],
+            datasets: [{
+                label: 'Requests',
+                data: hourlyChart,
+                fill: false,
+                lineTension: 0.1,
+            }],
         },
         options: {
-          title: {
-            display: false,
-          },
-          legend: {
-            display: false,
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              scaleLabel: {
-                display: true,
-                labelString: 'Time',
-              },
-              distribution: 'linear',
-              time: {
-                displayFormats: {
-                  second: 'mm:ss',
-                  minute: 'HH:mm:ss',
-                  hour: 'DD MMM HH:mm',
+            title: {
+                display: false,
+            },
+            plugins: {
+                legend: {
+                    display: false,
                 },
-                unit: 'hour',
-                round: true,
-              },
-            }],
-            yAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Requests',
-              },
-            }],
-          },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Requests',
+                    },
+                },
+            },
         },
-      })
-    </script>
-
-    <script src="js/daily.js"></script>
-    <script>
-      new Chart(document.getElementById('chartDaily'), {
+    })
+</script>
+<script src="./js/daily.js"></script>
+<script>
+    new Chart(document.getElementById('chartDaily'), {
         type: 'line',
         data: {
-          datasets: [{
-            label: 'Requests',
-            data: dailyChart,
-            fill: false,
-            lineTension: 0.1,
-          }],
+            datasets: [{
+                label: 'Requests',
+                data: dailyChart,
+                fill: false,
+                lineTension: 0.1,
+            }],
         },
         options: {
-          title: {
-            display: false,
-          },
-          legend: {
-            display: false,
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              scaleLabel: {
-                display: true,
-                labelString: 'Time',
-              },
-              distribution: 'linear',
-              time: {
-                displayFormats: {
-                  second: 'mm:ss',
-                  minute: 'HH:mm:ss',
-                  hour: 'DD MMM HH:mm',
+            title: {
+                display: false,
+            },
+            plugins: {
+                legend: {
+                    display: false,
                 },
-                unit: 'day',
-                round: true,
-              },
-            }],
-            yAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Requests',
-              },
-            }],
-          },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Requests',
+                    },
+                    max: 4500,
+                    min: 2000,
+                },
+            },
         },
-      })
-    </script>
+    })
+</script>
 </body>
 </html>

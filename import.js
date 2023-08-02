@@ -19,13 +19,9 @@
 
 'use strict'
 
-import { Logger } from '@diva.exchange/diva-logger'
 import { Stats } from './src/stats'
 import fs from 'fs'
 import path from 'path'
-
-const config = _configure()
-Logger.trace('Configuration').trace(config)
 
 if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
   throw new Error('path to import not found')
@@ -38,27 +34,17 @@ if (!process.argv[2] || !fs.existsSync(process.argv[2])) {
     let stats
     let dirent
     while ((dirent = dir.readSync()) !== null) {
-      stats = new Stats(config)
+      stats = new Stats()
       if (/^.+\.log$/.test(dirent.name)) {
         const count = await stats.import(path.join(process.argv[2], dirent.name))
-        Logger.info(`Imported ${count} records from ${dirent.name}`)
+        console.log(`Imported ${count} records from ${dirent.name}`)
       }
       stats = null
     }
     dir.closeSync()
   } else {
-    const stats = new Stats(config)
+    const stats = new Stats()
     const count = await stats.import(process.argv[2])
-    Logger.info(`Imported ${count} records from ${process.argv[2]}`)
+    console.log(`Imported ${count} records from ${process.argv[2]}`)
   }
 })()
-
-function _configure () {
-  const config = require('./package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
-
-  process.env.LOG_LEVEL = config.log_level = process.env.LOG_LEVEL || config.log_level ||
-    (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
-  Logger.setOptions({ name: config.log_name || 'Stats', level: config.log_level })
-
- return config
-}

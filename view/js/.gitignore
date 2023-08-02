@@ -1,2 +1,5 @@
-chart.bundle.min.js
+*
+!chart.umd.js
+!luxon.js
+!chartjs-adapter-luxon.umd.js
 !.gitignore

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 diva.exchange
+ * Copyright (C) 2020-2023 diva.exchange
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
- * Author/Maintainer: Konrad Bächler <konrad@diva.exchange>
+ * Author/Maintainer: DIVA.EXCHANGE Association <contact@diva.exchange> (https://diva.exchange)
  */
 
 'use strict'
@@ -38,18 +38,34 @@ export class Stats {
     Db.create('stats')
 
     // Chart bundle
-    const pathSourceChart = path.join(__dirname, '../node_modules/chart.js/dist/Chart.bundle.min.js')
-    const pathChart = path.join(__dirname, '../view/js/chart.bundle.min.js')
-    if (fs.existsSync(pathChart)) {
-      fs.unlinkSync(pathChart)
+    let pathSource = path.join(__dirname, '../node_modules/chart.js/dist/chart.umd.js')
+    let pathBrowser = path.join(__dirname, '../view/js/chart.umd.js')
+    if (fs.existsSync(pathBrowser)) {
+      fs.unlinkSync(pathBrowser)
     }
-    fs.copyFileSync(pathSourceChart, pathChart)
+    fs.copyFileSync(pathSource, pathBrowser)
+
+    // DateTime bundle, adapter
+    pathSource = path.join(__dirname, '../node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.umd.js')
+    pathBrowser = path.join(__dirname, '../view/js/chartjs-adapter-luxon.umd.js')
+    if (fs.existsSync(pathBrowser)) {
+      fs.unlinkSync(pathBrowser)
+    }
+    fs.copyFileSync(pathSource, pathBrowser)
+
+    // DateTime bundle, luxon
+    pathSource = path.join(__dirname, '../node_modules/luxon/build/global/luxon.js')
+    pathBrowser = path.join(__dirname, '../view/js/luxon.js')
+    if (fs.existsSync(pathBrowser)) {
+      fs.unlinkSync(pathBrowser)
+    }
+    fs.copyFileSync(pathSource, pathBrowser)
   }
 
   /**
    * @param config
    */
-  constructor (config) {
+  constructor () {
     this._db = Db.connect('stats')
     this._dbCountry = []
   }
@@ -197,22 +213,21 @@ export class Stats {
 
           const arrayParam = []
           arrayData.forEach((row) => {
-            const _ip = ip.toLong(row[0])
-            const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end)
-            const dt = new Date((row[3] + row[4])
-              .replace(':', ' ')
-              .replace('[', '')
-              .replace(']', '')
-            )
-            arrayParam.push({
-              i: path.basename(pathFile),
-              r: row[5],
-              dt: Math.round(dt.getTime() / 1000),
-              c: geo ? geo.country_code : null
-            })
+            if (row[6] === '200') {
+              const _ip = ip.toLong(row[0])
+              const geo = this._dbCountry.find(o => _ip >= o.ip_range_start && _ip <= o.ip_range_end)
+              const dt = new Date((row[3] + row[4]).replace(':', ' ').replace('[', '').replace(']', '')
+              )
+              arrayParam.push({
+                i: path.basename(pathFile),
+                r: row[5],
+                dt: Math.round(dt.getTime() / 1000),
+                c: geo ? geo.country_code : null
+              })
+            }
           })
 
-          this._db.insert(
+          arrayParam.length > 0 && this._db.insert(
             'INSERT INTO request (ident, resource, timestamp_utc, country) VALUES (@i, @r, @dt, @c)',
             arrayParam)
           resolve(arrayParam.length)

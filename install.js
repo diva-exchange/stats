@@ -19,12 +19,6 @@
 
 'use strict'
 
-import { Logger } from '@diva.exchange/diva-logger'
 import { Stats } from './src/stats'
-
-const config = require('./package.json')[process.env.NODE_ENV === 'production' ? 'Stats' : 'devStats']
-process.env.LOG_LEVEL = config.log_level = process.env.LOG_LEVEL || config.log_level ||
-  (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
-Logger.setOptions({ name: config.log_name || 'StatsInstall', level: config.log_level })
 
 Stats.install()
